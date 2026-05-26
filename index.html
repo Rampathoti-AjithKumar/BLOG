@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Blog App</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+ <nav>
+  <h1>Blog App</h1>
+
+  <button id="logoutBtn" class="hidden">
+    Logout
+  </button>
+</nav>
+
+  <!-- Auth Section -->
+  <div class="container" id="authContainer">
+
+    <!-- Login -->
+    <div id="loginBox">
+      <h2>Sign In</h2>
+
+      <input type="email" id="loginEmail" placeholder="Enter Email">
+
+      <input type="password" id="loginPassword" placeholder="Enter Password">
+
+      <button onclick="login()">Sign In</button>
+
+<p class="forgot-password" onclick="forgotPassword()">
+  Forgot Password?
+</p>
+      <p>
+        Don't have an account?
+        <span onclick="showRegister()">Sign Up</span>
+      </p>
+    </div>
+
+    <!-- Register -->
+    <div id="registerBox" class="hidden">
+      <h2>Sign Up</h2>
+
+      <input type="text" id="registerUsername" placeholder="Enter Username">
+
+      <input type="email" id="registerEmail" placeholder="Enter Email">
+
+      <input type="password" id="registerPassword" placeholder="Enter Password">
+
+      <button onclick="register()">Create Account</button>
+
+      <p>
+        Already have an account?
+        <span onclick="showLogin()">Sign In</span>
+      </p>
+    </div>
+
+  </div>
+  <div id="appContainer" class="hidden">
+
+    <!-- Create Post -->
+    <div class="create-post">
+      <textarea id="caption" placeholder="Write something..."></textarea>
+
+      <input type="file" id="mediaInput" accept="image/*,video/*">
+
+      <button onclick="createPost()">Upload Post</button>
+    </div>
+
+    <!-- Posts -->
+    <div id="postsContainer"></div>
+
+  </div>
+<footer>
+  Made by Ajithkumar
+</footer>
+  <script src="script.js"></script>
+
+</body>
+</html>
