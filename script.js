@@ -1,19 +1,16 @@
 // Show Register
-
 function showRegister() {
   document.getElementById("loginBox").classList.add("hidden");
   document.getElementById("registerBox").classList.remove("hidden");
 }
 
 // Show Login
-
 function showLogin() {
   document.getElementById("registerBox").classList.add("hidden");
   document.getElementById("loginBox").classList.remove("hidden");
 }
 
 // Register
-
 function register() {
 
   const username =
@@ -29,23 +26,23 @@ function register() {
     alert("Please fill all fields");
     return;
   }
-const emailPattern =
-  /^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
 
-if (!email.match(emailPattern)) {
-  alert("Enter valid email");
-  return;
-}
+  const emailPattern =
+    /^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
 
-if (password.length < 5) {
-  alert("Password must be at least 5 characters");
-  return;
-}
-  // Get existing users
+  if (!email.match(emailPattern)) {
+    alert("Enter valid email");
+    return;
+  }
+
+  if (password.length < 5) {
+    alert("Password must be at least 5 characters");
+    return;
+  }
+
   let users =
     JSON.parse(localStorage.getItem("users")) || [];
 
-  // Check if email already exists
   const userExists = users.find(
     user => user.email === email
   );
@@ -55,17 +52,12 @@ if (password.length < 5) {
     return;
   }
 
-  // Create new user
-  const newUser = {
+  users.push({
     username,
     email,
     password
-  };
+  });
 
-  // Add user
-  users.push(newUser);
-
-  // Save users
   localStorage.setItem(
     "users",
     JSON.stringify(users)
@@ -77,7 +69,6 @@ if (password.length < 5) {
 }
 
 // Login
-
 function login() {
 
   const email =
@@ -86,11 +77,9 @@ function login() {
   const password =
     document.getElementById("loginPassword").value;
 
-  // Get users
   let users =
     JSON.parse(localStorage.getItem("users")) || [];
 
-  // Find matching user
   const validUser = users.find(
     user =>
       user.email === email &&
@@ -99,7 +88,10 @@ function login() {
 
   if (validUser) {
 
-    alert("Login Successful");
+    localStorage.setItem(
+      "currentUser",
+      JSON.stringify(validUser)
+    );
 
     document.getElementById("authContainer")
       .classList.add("hidden");
@@ -110,6 +102,10 @@ function login() {
     document.getElementById("logoutBtn")
       .classList.remove("hidden");
 
+    displayPosts();
+
+    alert("Login Successful");
+
   } else {
 
     alert("Invalid Email or Password");
@@ -117,109 +113,82 @@ function login() {
 }
 
 // Logout
+document.getElementById("logoutBtn")
+.addEventListener("click", () => {
 
-document.getElementById("logoutBtn").addEventListener("click", () => {
+  localStorage.removeItem("currentUser");
 
-  document.getElementById("appContainer").classList.add("hidden");
+  document.getElementById("appContainer")
+    .classList.add("hidden");
 
-  document.getElementById("authContainer").classList.remove("hidden");
+  document.getElementById("authContainer")
+    .classList.remove("hidden");
+
+  document.getElementById("logoutBtn")
+    .classList.add("hidden");
 });
 
 // Create Post
-
 function createPost() {
 
-  const caption = document.getElementById("caption").value;
+  const caption =
+    document.getElementById("caption").value;
 
-  const mediaInput = document.getElementById("mediaInput");
+  const mediaInput =
+    document.getElementById("mediaInput");
 
   const file = mediaInput.files[0];
 
   if (!file) {
-    alert("Please select an image or video");
+    alert("Please select image or video");
     return;
   }
+
+  const currentUser =
+    JSON.parse(localStorage.getItem("currentUser"));
 
   const reader = new FileReader();
 
   reader.onload = function () {
 
-    const postDiv = document.createElement("div");
+    let posts =
+      JSON.parse(localStorage.getItem("posts")) || [];
 
-    postDiv.classList.add("post");
+    const post = {
 
-    let mediaElement = "";
+      username: currentUser.username,
 
-    // Image Preview
-    if (file.type.startsWith("image/")) {
+      caption: caption,
 
-      mediaElement = `
-        <img src="${reader.result}" alt="Post Image">
-      `;
+      media: reader.result,
 
-    }
+      type: file.type.startsWith("image/")
+        ? "image"
+        : "video",
 
-    // Video Preview
-    else if (file.type.startsWith("video/")) {
+      likes: 0,
 
-      mediaElement = `
-        <video controls>
-          <source src="${reader.result}" type="${file.type}">
-          Your browser does not support video.
-        </video>
-      `;
+      comments: []
+    };
 
-    }
+    posts.unshift(post);
 
-    postDiv.innerHTML = `
+    localStorage.setItem(
+      "posts",
+      JSON.stringify(posts)
+    );
 
-      ${mediaElement}
-
-      <div class="post-content">
-
-        <h3>${caption}</h3>
-
-        <div class="actions">
-
-          <button onclick="likePost(this)">
-            ❤️ Like
-          </button>
-
-          <button onclick="deletePost(this)">
-            🗑 Delete
-          </button>
-
-        </div>
-
-        <div class="comment-box">
-
-          <input type="text" placeholder="Write comment">
-
-          <button onclick="addComment(this)">
-            Comment
-          </button>
-
-          <div class="comments"></div>
-
-        </div>
-
-      </div>
-
-    `;
-
-    document
-      .getElementById("postsContainer")
-      .prepend(postDiv);
+    displayPosts();
 
     document.getElementById("caption").value = "";
 
     mediaInput.value = "";
-
   };
 
   reader.readAsDataURL(file);
 }
-//display post
+
+// Display Posts
 function displayPosts() {
 
   const postsContainer =
@@ -242,7 +211,7 @@ function displayPosts() {
     if (post.type === "image") {
 
       mediaElement =
-        `<img src="${post.media}">`;
+        `<img src="${post.media}" alt="Post">`;
 
     } else {
 
@@ -253,11 +222,24 @@ function displayPosts() {
       `;
     }
 
+    let commentsHTML = "";
+
+    post.comments.forEach(comment => {
+
+      commentsHTML += `
+        <div class="comment">
+          ${comment}
+        </div>
+      `;
+    });
+
     postDiv.innerHTML = `
 
       ${mediaElement}
 
       <div class="post-content">
+
+        <h4>Posted by: ${post.username}</h4>
 
         <h3>${post.caption}</h3>
 
@@ -273,6 +255,25 @@ function displayPosts() {
 
         </div>
 
+        <div class="comment-box">
+
+          <input
+            type="text"
+            id="comment-${index}"
+            placeholder="Write comment">
+
+          <button onclick="addComment(${index})">
+            Comment
+          </button>
+
+          <div class="comments">
+
+            ${commentsHTML}
+
+          </div>
+
+        </div>
+
       </div>
     `;
 
@@ -281,25 +282,38 @@ function displayPosts() {
 }
 
 // Like Post
+function likePost(index) {
 
-function likePost(button) {
+  let likedPosts =
+    JSON.parse(localStorage.getItem("likedPosts")) || [];
 
-  if (button.dataset.liked === "true") {
-    alert("You already liked this post!");
+  if (likedPosts.includes(index)) {
+
+    alert("You already liked this post");
     return;
   }
 
-  let count = Number(button.dataset.count || 0);
+  let posts =
+    JSON.parse(localStorage.getItem("posts")) || [];
 
-  count++;
+  posts[index].likes++;
 
-  button.dataset.count = count;
-  button.dataset.liked = "true";
+  localStorage.setItem(
+    "posts",
+    JSON.stringify(posts)
+  );
 
-  button.innerHTML = `❤️ Like (${count})`;
+  likedPosts.push(index);
+
+  localStorage.setItem(
+    "likedPosts",
+    JSON.stringify(likedPosts)
+  );
+
+  displayPosts();
 }
-// Delete Post
 
+// Delete Post
 function deletePost(index) {
 
   let posts =
@@ -316,54 +330,41 @@ function deletePost(index) {
 }
 
 // Add Comment
+function addComment(index) {
 
-function addComment(button) {
+  const input =
+    document.getElementById(`comment-${index}`);
 
-  const commentInput =
-    button.previousElementSibling;
+  const text = input.value.trim();
 
-  const commentsDiv =
-    button.nextElementSibling;
+  if (!text) return;
 
-  const commentText = commentInput.value;
+  let posts =
+    JSON.parse(localStorage.getItem("posts")) || [];
 
-  if (commentText === "") return;
+  posts[index].comments.push(text);
 
-  const comment = document.createElement("div");
-
-  comment.classList.add("comment");
-
-  comment.innerText = commentText;
-
-  commentsDiv.appendChild(comment);
-
-  commentInput.value = "";
-}
-function forgotPassword() {
-
-  const email = prompt(
-    "Enter your registered email"
+  localStorage.setItem(
+    "posts",
+    JSON.stringify(posts)
   );
 
-  if (!email) {
-    alert("Please enter email");
-    return;
-  }
+  displayPosts();
+}
 
-  const emailPattern =
-    /^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
+// Forgot Password
+function forgotPassword() {
 
-  if (!email.match(emailPattern)) {
-    alert("Enter valid email");
-    return;
-  }
+  const email =
+    prompt("Enter your registered email");
+
+  if (!email) return;
 
   let users =
     JSON.parse(localStorage.getItem("users")) || [];
 
-  const user = users.find(
-    user => user.email === email
-  );
+  const user =
+    users.find(u => u.email === email);
 
   if (user) {
 
@@ -376,4 +377,24 @@ function forgotPassword() {
     alert("Email not found");
   }
 }
-displayPosts();
+
+// Auto Login
+window.onload = function () {
+
+  const currentUser =
+    localStorage.getItem("currentUser");
+
+  if (currentUser) {
+
+    document.getElementById("authContainer")
+      .classList.add("hidden");
+
+    document.getElementById("appContainer")
+      .classList.remove("hidden");
+
+    document.getElementById("logoutBtn")
+      .classList.remove("hidden");
+
+    displayPosts();
+  }
+};
