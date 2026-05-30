@@ -138,6 +138,10 @@ function createPost() {
     document.getElementById("mediaInput");
 
   const file = mediaInput.files[0];
+  if (file.size > 5 * 1024 * 1024) {
+  alert("File must be less than 5 MB");
+  return;
+}
 
   if (!file) {
     alert("Please select image or video");
