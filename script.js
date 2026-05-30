@@ -129,16 +129,14 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
 
 function createPost() {
 
-  const caption =
-    document.getElementById("caption").value;
+  const caption = document.getElementById("caption").value;
 
-  const mediaInput =
-    document.getElementById("mediaInput");
+  const mediaInput = document.getElementById("mediaInput");
 
   const file = mediaInput.files[0];
 
   if (!file) {
-    alert("Select image or video");
+    alert("Please select an image or video");
     return;
   }
 
@@ -146,41 +144,77 @@ function createPost() {
 
   reader.onload = function () {
 
-    const post = {
+    const postDiv = document.createElement("div");
 
-      caption: caption,
+    postDiv.classList.add("post");
 
-      media: reader.result,
+    let mediaElement = "";
 
-      type: file.type.startsWith("image")
-        ? "image"
-        : "video",
+    // Image Preview
+    if (file.type.startsWith("image/")) {
 
-      likes: 0,
+      mediaElement = `
+        <img src="${reader.result}" alt="Post Image">
+      `;
 
-      comments: []
-    };
+    }
 
-    // Get old posts
-    let posts =
-      JSON.parse(localStorage.getItem("posts")) || [];
+    // Video Preview
+    else if (file.type.startsWith("video/")) {
 
-    // Add new post
-    posts.unshift(post);
+      mediaElement = `
+        <video controls>
+          <source src="${reader.result}" type="${file.type}">
+          Your browser does not support video.
+        </video>
+      `;
 
-    // Save posts
-    localStorage.setItem(
-      "posts",
-      JSON.stringify(posts)
-    );
+    }
 
-    // Display posts
-    displayPosts();
+    postDiv.innerHTML = `
 
-    // Clear inputs
+      ${mediaElement}
+
+      <div class="post-content">
+
+        <h3>${caption}</h3>
+
+        <div class="actions">
+
+          <button onclick="likePost(this)">
+            ❤️ Like
+          </button>
+
+          <button onclick="deletePost(this)">
+            🗑 Delete
+          </button>
+
+        </div>
+
+        <div class="comment-box">
+
+          <input type="text" placeholder="Write comment">
+
+          <button onclick="addComment(this)">
+            Comment
+          </button>
+
+          <div class="comments"></div>
+
+        </div>
+
+      </div>
+
+    `;
+
+    document
+      .getElementById("postsContainer")
+      .prepend(postDiv);
+
     document.getElementById("caption").value = "";
 
     mediaInput.value = "";
+
   };
 
   reader.readAsDataURL(file);
@@ -248,21 +282,22 @@ function displayPosts() {
 
 // Like Post
 
-function likePost(index) {
+function likePost(button) {
 
-  let posts =
-    JSON.parse(localStorage.getItem("posts")) || [];
+  if (button.dataset.liked === "true") {
+    alert("You already liked this post!");
+    return;
+  }
 
-  posts[index].likes++;
+  let count = Number(button.dataset.count || 0);
 
-  localStorage.setItem(
-    "posts",
-    JSON.stringify(posts)
-  );
+  count++;
 
-  displayPosts();
+  button.dataset.count = count;
+  button.dataset.liked = "true";
+
+  button.innerHTML = `❤️ Like (${count})`;
 }
-
 // Delete Post
 
 function deletePost(index) {
